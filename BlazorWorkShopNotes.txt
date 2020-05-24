@@ -1,0 +1,198 @@
+Slide-2
+- Build Client Side Web UI with .NET instead of JavaScript.
+- Write re-usable web UI Components with C# and Razor.
+- Share .NET code with both the client and server.
+- Call into JavaScript libraries & Browser API's as Needed.
+
+Slide-3
+- Blazor apps can operate on 2 different modes
+      a) First mode we call blazor server
+            - blazor server apps run the components on 
+              the server on top of .NET core.
+            - Blazor server apps then sets up a real time
+              connection with the browser typicall over
+              a web socket using Signal R.
+            - In the UI events that happen in the browser
+               are sent to the server and handle by your
+               components which then render.
+            - Blazor then keeps track of any changes that
+              are made in the UI using a sophisticated 
+              diffing algorithm, any changes are then
+              sent back to the browser and applied to 
+              live DOM.
+           - Blazor server app can use a very thin client
+             which can great on low power devices
+             and old browsers.
+           - Blazor server app can simplify your application architecture eliminating the need of standup additional API's or Http End points.
+           -  All you code stays on server, as you write more code the size of application will not grow.
+           - Blazor is shipped with .NET core 3.1 LTS
+           - It is ready for production mode.
+ 
+Signal R
+-Chat applications
+-Collaborative apps, like multi-user whiteboards or project management tools
+-Online gaming
+-Automatic updating of applications, like dashboards or realtime maps
+-Notifications and alerts
+
+         b) Second mode of Blazor apps we call
+               Blazor Web Assembly 
+            - Blazor web assembly apps run your components directly in the browser using a web assembly based .NET run time.
+            - In a Blazor web assembly apps you components are downloaded as normal .net assemblies along with the runtime into the browser and executed directly in the browser.
+           - As UI events occur they are handled directly by your compoent in the browser. Blazor tracks the changes and updates the DOM.
+           - Blazor web assembly apps doesn't required server components so they can be deployed as purely static sites. Supports offline scenario. 
+           - Blazor web assembly apps is not yet ready
+             for production and not included into .NET core.
+
+
+dotnet new --install Microsoft.AspNetCore.Blazor.Templates::3.2.0-preview1.20073.1
+
+
+Ex:
+Models Folder
+- Category.cs
+
+  public class Category
+    {
+        public int CategoryId { get; set; }
+        public string CategoryName { get; set; }
+    }
+
+-Product.cs
+
+ public class Product
+    {
+        public int ProductId { get; set; }
+        public string Name { get; set; }
+        public decimal Price { get; set; }
+        public string Photo { get; set; }
+        public Category Category { get; set; }
+    }
+
+- ProductsList.cs
+
+using System;
+using System.Collections.Generic;
+using Microsoft.AspNetCore.Components;
+using System.Linq;
+using System.Threading.Tasks;
+
+namespace BlazorApp2.Models
+{
+    public class ProductsList : ComponentBase
+    {
+       public IEnumerable<Product> Products { get; set; }
+       public void LoadProducts()
+        {
+            Product nike = new Product
+            {
+                ProductId = 1,
+                Name = "Nike Casuals",
+                Price = 4500.55M,
+                Photo = "Images/nike.jpg",
+                Category = new Category { CategoryId = 1, CategoryName = "Footwear" }
+            };
+            Product leeCooper = new Product
+            {
+                ProductId = 2,
+                Name = "Lee Cooper Boot",
+                Price = 4300.55M,
+                Photo = "Images/shoe1.jpg",
+                Category = new Category { CategoryId = 1, CategoryName = "Footwear" }
+            };
+            Product shirt = new Product
+            {
+                ProductId = 3,
+                Name = "Levis Shirt",
+                Price = 3500.55M,
+                Photo = "Images/shirt.jpg",
+                Category = new Category { CategoryId = 2, CategoryName = "Fashion" }
+            };
+            Product jeans = new Product
+            {
+                ProductId = 4,
+                Name = "Lee Jeans",
+                Price = 5500.55M,
+                Photo = "Images/jeans.jpg",
+                Category = new Category { CategoryId = 2, CategoryName = "Fashion" }
+            };
+            Products = new List<Product> { nike, shirt, jeans, leeCooper };
+        }
+        protected override Task OnInitializedAsync()
+        {
+            LoadProducts();
+            return base.OnInitializedAsync();
+        }
+    }
+}
+
+- Goto Pages and Add Razor Component
+	"Products.razor"
+
+@page "/"
+@inherits BlazorApp2.Models.ProductsList
+
+<h3>Products List</h3>
+<div class="card-deck">
+    @foreach(var item in Products)
+    {
+        <div class="card">
+            <div class="card-header">
+                <h2 class="card-title">@item.Name</h2>
+            </div>
+            <div class="card-body">
+                <img src="@item.Photo" width="100" height="100" />
+            </div>
+            <div class="card-footer">
+                @item.Price
+            </div>
+        </div>
+    }
+</div>
+
+- FetchData.Razor
+
+@page "/fetchdata"
+
+@inherits BlazorApp2.Models.ProductsList
+
+<h1>Search Products</h1>
+
+<div class="form-group">
+    <div class="form-inline">
+        <input type="text" @bind-value="@id" class="form-control" />
+        <button class="btn btn-primary" @onclick="@SearchProducts">Search</button>
+    </div>
+</div>
+
+@if (prod == null)
+{
+    <div>loading...</div>
+}
+else
+{
+
+    <div class="card">
+        <div class="card-header">
+            <h2>@prod.Name</h2>
+        </div>
+        <div class="card-body">
+            <img src="@prod.Photo" width="100" height="100" />
+        </div>
+        <div class="card-footer">
+            <h3>@prod.Price</h3>
+        </div>
+    </div>
+}
+
+@code {
+    private int id;
+    public BlazorApp2.Models.Product prod;
+    private void SearchProducts()
+    {
+        prod = Products.Single(x => x.ProductId == id);
+    }
+}
+
+
+ 
